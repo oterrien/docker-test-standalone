@@ -17,47 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.UUID;
 
-@Profile("rabbitmq")
 @RestController
 @Slf4j
 public class PublisherController {
 
-    @Value("${environment}")
-    private String environment;
-
-    @Value("${rabbitmq.queue.name}")
-    private String requestQueueName;
-
-    @Autowired
-    private Channel channel;
-
-    @RequestMapping(method = RequestMethod.POST, value = "/push/test")
-    public ResponseEntity push(@RequestBody String body) {
-
-        final String correlationId = UUID.randomUUID().toString();
-
-        log.info(String.format("Sending '%S' with correlId [%s]", body, correlationId));
-
-        sendRequest(correlationId, body);
-
-        return new ResponseEntity(HttpStatus.ACCEPTED);
-    }
-
-    private void sendRequest(String correlationId, String message) {
-
-        try {
-            AMQP.BasicProperties props = new AMQP.BasicProperties.
-                    Builder().
-                    correlationId(correlationId).
-                    build();
-
-            channel.queueDeclare(requestQueueName, true, false, false, null);
-            channel.basicPublish(StringUtils.EMPTY, requestQueueName, props, message.getBytes("UTF-8"));
-
-            log.debug(String.format("####-'%s' sent with correlationId [%s]", message, correlationId));
-
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
+    @RequestMapping(method = RequestMethod.GET, value = "/ping")
+    public ResponseEntity push() {
+        return new ResponseEntity(HttpStatus.OK);
     }
 }
